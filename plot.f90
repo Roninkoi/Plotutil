@@ -41,10 +41,10 @@ program main
   
   !call sort(x, y, n)
 
-  y = ydata!(1:100)
+  y = log(ydata)!(1:100)
 
-  x = 1.0_8/(xdata**2)!(1:100)
-  !x = xdata
+  !x = 1.0_8/(xdata**2)!(1:100)
+  x = xdata
 
   n = size(x);
 
@@ -62,7 +62,7 @@ program main
 
   call plotout(x, y, n)
 
-  call plotout(tx, ty, tn)
+  !call plotout(tx, ty, tn)
 contains
   function f(x, n)
     integer :: n
