@@ -1,4 +1,5 @@
 #!/bin/sh
+./build.sh
 if [ "$#" -eq 1 ]
 then
 	./plotter.sh $1

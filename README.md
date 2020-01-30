@@ -2,8 +2,13 @@
 
 Uses Gnuplot to draw plots from data files. Data columns separated by spaces or tabs, # is comment.
 
-Usage:
+Usage (plot):
 
+```
+./run.sh gnuplot.plt data.txt
+```
+
+Or (plotter):
 ```
 ./run.sh data.txt
 ```
