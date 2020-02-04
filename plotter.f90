@@ -7,8 +7,9 @@ module plotutil
   implicit none
 
   integer, parameter :: rk = 8
+  integer, parameter :: colmax = 3000
 
-  character(3000) :: line
+  character(colmax) :: line
 
 contains
   subroutine fitline(xdata, ydata, n, a, b)
@@ -18,11 +19,11 @@ contains
     integer :: n, i
     real(rk) :: a, b, d, sx2, sx, sy, sxy
 
-    d = 0.0_8
-    sx2 = 0.0_8
-    sx = 0.0_8
-    sy = 0.0_8
-    sxy = 0.0_8
+    d = 0.0
+    sx2 = 0.0
+    sx = 0.0
+    sy = 0.0
+    sxy = 0.0
 
     i = 1
     do while (i <= n)
@@ -63,13 +64,13 @@ contains
     real(rk) :: r
 
     character :: ch
-    character(3000) :: cch
+    character(colmax) :: cch
     logical :: ws
 
     integer :: i, n, cc
 
     i = 1
-    n = 3000
+    n = colmax
     cc = 0
     ws = .false.
     cch = ''
@@ -299,7 +300,7 @@ contains
 
     i = 1
     do while(i <= n)
-       write(*, '(f0.8 x f0.8)') x(i), y(i)
+       write(*, '(f0.8, x, f0.8)') x(i), y(i)
        !print *, x(i), y(i)
 
        i = i + 1
@@ -317,7 +318,7 @@ contains
 
     i = 1
     do while(i <= n)
-       write(*, '(f0.8 x f0.8 x f0.8)') x(i), y(i), e(i)
+       write(*, '(f0.8, x, f0.8, x, f0.8)') x(i), y(i), e(i)
 
        i = i + 1
     end do

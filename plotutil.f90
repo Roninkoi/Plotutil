@@ -7,10 +7,108 @@ module plotutil
   implicit none
 
   integer, parameter :: rk = 8
+  integer, parameter :: colmax = 3000
 
-  character(3000) :: line
+  character(colmax) :: line
 
 contains
+  function chisigma2(xdata, ydata, n, a, b)
+    real(rk), allocatable :: xdata(:)
+    real(rk), allocatable :: ydata(:)
+    real(rk) :: chisigma2
+
+    integer :: n, i
+    real(rk) :: a, b, sum
+
+    sum = 0
+    i = 1
+    do while (i <= n)
+       sum = sum + (ydata(i) - a - b * xdata(i))**2
+       i = i + 1
+    end do
+
+    chisigma2 = (sum)/(n - 2)
+  end function chisigma2
+  
+  subroutine fitlinesigmai(xdata, ydata, n, sigma, a, b, sa, sb)
+    real(rk), allocatable :: xdata(:)
+    real(rk), allocatable :: ydata(:)
+    real(rk), allocatable :: sigma(:)
+
+    integer :: n, i
+    real(rk) :: a, b, sa, sb
+    real(rk) :: d, sx2, sx, sy, sxy, ss, s2
+
+    d = 0.0
+    sx2 = 0.0
+    sx = 0.0
+    sy = 0.0
+    sxy = 0.0
+    ss = 0.0
+
+    i = 1
+    do while (i <= n)
+       s2 = sigma(i)**2
+
+       sx2 = sx2 + (xdata(i)**2)/s2
+
+       ss = ss + 1.0/s2
+
+       sx = sx + xdata(i)/s2
+       sy = sy + ydata(i)/s2
+       sxy = sxy + (xdata(i) * ydata(i))/s2
+
+       i = i + 1
+    end do
+
+    d = ss*sx2 - sx**2
+
+    a = (sx2 * sy - sx * sxy) / d
+    b = (ss * sxy - sx * sy) / d
+
+    sa = (sx2) / d
+    sb = (ss) / d
+  end subroutine fitlinesigmai
+
+  subroutine fitlinesigma(xdata, ydata, n, sigma, a, b, sa, sb)
+    real(rk), allocatable :: xdata(:)
+    real(rk), allocatable :: ydata(:)
+
+    integer :: n, i
+    real(rk) :: a, b, sa, sb
+    real(rk) :: d, sx2, sx, sy, sxy, ss, s2, sigma
+
+    s2 = sigma**2
+
+    d = 0.0
+    sx2 = 0.0
+    sx = 0.0
+    sy = 0.0
+    sxy = 0.0
+    ss = 0.0
+
+    i = 1
+    do while (i <= n)
+       sx2 = sx2 + (xdata(i)**2)/s2
+
+       ss = ss + 1.0/s2
+
+       sx = sx + xdata(i)/s2
+       sy = sy + ydata(i)/s2
+       sxy = sxy + (xdata(i) * ydata(i))/s2
+
+       i = i + 1
+    end do
+
+    d = ss*sx2 - sx**2
+
+    a = (sx2 * sy - sx * sxy) / d
+    b = (ss * sxy - sx * sy) / d
+
+    sa = (sx2) / d
+    sb = (ss) / d
+  end subroutine fitlinesigma
+
   subroutine fitline(xdata, ydata, n, a, b)
     real(rk), allocatable :: xdata(:)
     real(rk), allocatable :: ydata(:)
@@ -18,11 +116,11 @@ contains
     integer :: n, i
     real(rk) :: a, b, d, sx2, sx, sy, sxy
 
-    d = 0.0_8
-    sx2 = 0.0_8
-    sx = 0.0_8
-    sy = 0.0_8
-    sxy = 0.0_8
+    d = 0.0
+    sx2 = 0.0
+    sx = 0.0
+    sy = 0.0
+    sxy = 0.0
 
     i = 1
     do while (i <= n)
@@ -57,19 +155,32 @@ contains
     end do
   end subroutine mka
 
+  subroutine fla(a, n, v) ! fill array
+    real(rk), allocatable :: a(:)
+    real(rk) :: v
+
+    integer :: n, i
+
+    allocate(a(n))
+
+    do i = 1, n, 1
+       a(i) = v
+    end do
+  end subroutine fla
+
   ! separated by tabs or spaces, hash is comment
   subroutine column(r, c, cm)
     integer :: c, cm
     real(rk) :: r
 
     character :: ch
-    character(3000) :: cch
+    character(colmax) :: cch
     logical :: ws
 
     integer :: i, n, cc
 
     i = 1
-    n = 3000
+    n = colmax
     cc = 0
     ws = .false.
     cch = ''
