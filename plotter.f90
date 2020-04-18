@@ -268,21 +268,21 @@ program main
   !print *, a, b
 
 !  print '(a)', 'set datafile separator ","'
-  print '(a)', 'set title "Säteily"'
-  print '(a)', 'set xlabel "1/r2 [1/cm2]"'
-  print '(a)', 'set ylabel "N [1/min]"'
+  print '(a)', 'set title "Värähtely"'
+  print '(a)', 'set xlabel "I [lux]"'
+  print '(a)', 'set ylabel "t [ms]"'
   print '(a)', 'set grid'
   print '(a)', 'set key top left; set style data points'
   
-  print '(a)', 'plot "-" using 1:2 title "data" with linespoints pt 7 lt 5 lc rgb "#ffaa00", ' // &
-       '"-" using 1:2 title "fit" with lines lt 5 lc rgb "#ff0000"'
+  print '(a)', 'plot "-" using 1:2 title "data" with linespoints pt 7 lt 5 lc rgb "#ffaa00", '! // &
+!       '"-" using 1:2 title "fit" with lines lt 5 lc rgb "#ff0000"'
 
   ! using 1:2:3 with yerrorbars
   ! with linespoints pt 7 lt 5 lc rgb "#ffffff"
 
   call plotout(x, y, n)
 
-  call plotout(tx, ty, tn)
+  !call plotout(tx, ty, tn)
 contains
   function f(x, n)
     integer :: n

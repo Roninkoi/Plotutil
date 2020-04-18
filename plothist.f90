@@ -9,7 +9,7 @@ program main
   implicit none
 
   character(80) :: s, sc
-  integer :: i, n, tn, fn
+  integer :: i, n, tn
 
   real(rk), allocatable :: x(:)
   real(rk), allocatable :: y(:)
@@ -20,11 +20,8 @@ program main
 
   real(rk), allocatable :: tx(:) ! theory
   real(rk), allocatable :: ty(:) ! time for theory
-  
-  real(rk), allocatable :: fx(:) ! fit
-  real(rk), allocatable :: fy(:) ! time for fit
-  real(rk), allocatable :: fymax(:)
-  real(rk), allocatable :: fymin(:)
+  real(rk), allocatable :: tymax(:)
+  real(rk), allocatable :: tymin(:)
 
   real(rk), allocatable :: e(:), en(:) ! error
 
@@ -38,49 +35,37 @@ program main
 
   xdata = parser(s, 1)
   ydata = parser(s, 2)
-  e = parser(s, 3)
-  
+
   !call sort(x, y, n)
 
-  n = size(xdata)
-
-  y = ydata!(1:100)
-  !y = log(ydata)
+  y = log(ydata)
+  !y = ydata!(1:100)
   !x = 1.0_8/(xdata**2)!(1:100)
   x = xdata
 
-  !call fitline(x, y, n, a, b)
+  n = size(x)
+
+  call fitline(x, y, n, a, b)
   !call fla(e, n, 1._8)
 
-  !e = sqrt(ydata + bg)
-
-  !e = (log((ydata - bg) + e) - log((ydata - bg) - e)) / 2.0
-  !e = sqrt((1.0/((ydata - bg)**2)) * (ydata + bg))
-  !e = 1.0_8 / (sqrt(ydata + bg))
-
   !call fitlinesigmai(x, y, n, e, a, b, sa, sb)
-  call fitlinesigmaimc(x, y, n, e, a, b, sa, sb, 32.0_8, 0.3_8)
 
-  !sigma = log(sqrt(ydata(1) + bg))
+  sigma = sqrt(sum(y)/real(n,rk))
   !sigma = sqrt(chisigma2(x, y, n, a, b))
-  !call fitlinesigma(x, y, n, sigma, a, b, sa, sb)
+  call fitlinesigma(x, y, n, sigma, a, b, sa, sb)
 
-  call mka(fx, 0.0_8, 18.0_8, 0.2_8)
-  fy = a + fx * b
-  fymax = (a+sa) + fx * (b+sb)
-  fymin = (a-sa) + fx * (b-sb)
+  call mka(tx, 0.003_8, 0.16_8, 0.02_8)
+  ty = a + tx * b
+  tymax = (a+sqrt(sa)) + tx * (b+sqrt(sb))
+  tymin = (a-sqrt(sa)) + tx * (b-sqrt(sb))
 
-  !call mka(tx, 0.0_8, 17.0_8, 0.2_8)
-  !ty = (ydata(1)) * exp(-0.12106 * tx)
-  !ty = log(ty)
+  se = sqrt(sa + sb)
 
   write(0, *) "sigma: ", sigma
-  write(0, *) "a: ", a, "b: ", b, "sa: ", sqrt(sa), "sb: ", sqrt(sb)
-  !write(0, *) "avg err", sum(e)/real(n, rk)
+  write(0, *) "a: ", a, "b: ", b, " as2: ", sa, " bs2: ", sb, " fit err: ", se
 
-  !write(0, *) "counts: ", sum(ydata)
+  write(0, *) "counts: ", sum(ydata)
 
-  fn = size(fx)
   tn = size(tx)
 
   print *, code
@@ -88,14 +73,12 @@ program main
   !call fla(en, tn, se)
   !call fla(e, n, sigma)
 
-   call plotoute(x, y, e, n)
-  !call plotout(x, y, n)
+  !  call plotoute(x, y, e, n)
+  call plotout(x, y, n)
 
-  call plotout(fx, fy, fn)
-  call plotout(fx, fymax, fn)
-  call plotout(fx, fymin, fn)
-  
-  !call plotout(tx, ty, tn)
+!  call plotout(tx, ty, tn)
+!  call plotout(tx, tymax, tn)
+!  call plotout(tx, tymin, tn)
 contains
   function f(x, n)
     integer :: n
