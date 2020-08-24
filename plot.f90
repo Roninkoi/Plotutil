@@ -8,7 +8,7 @@ program main
 
   implicit none
 
-  character(80) :: s, sc
+  character(colmax) :: s, sc
   integer :: i, n, tn, fn
 
   real(rk), allocatable :: x(:)

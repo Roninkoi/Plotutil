@@ -8,8 +8,11 @@ program main
 
   implicit none
 
-  character(80) :: s, sc
+  character(colmax) :: s, sc
   integer :: i, n, tn
+
+  real(rk) :: hmin, hmax, hdiff
+  integer :: hi, hj, hn, hc
 
   real(rk), allocatable :: x(:)
   real(rk), allocatable :: y(:)
@@ -17,6 +20,9 @@ program main
   character, allocatable :: code(:) ! plotting script
   real(rk), allocatable :: xdata(:) ! value data
   real(rk), allocatable :: ydata(:) ! time data
+
+  real(rk), allocatable :: vxdata(:)
+  real(rk), allocatable :: vydata(:)
 
   real(rk), allocatable :: tx(:) ! theory
   real(rk), allocatable :: ty(:) ! time for theory
@@ -33,53 +39,57 @@ program main
 
   code = readfile(sc)
 
-  xdata = parser(s, 1)
-  ydata = parser(s, 2)
+  vxdata = parse_movie(s, 4, "10000", "100000")
+  vydata = parse_movie(s, 5, "10000", "100000")
+  xdata = sqrt(vxdata**2 + vydata**2) * 1.e5
+  xdata = xdata * xdata * 3.29304e-7
 
   !call sort(x, y, n)
 
-  y = log(ydata)
-  !y = ydata!(1:100)
-  !x = 1.0_8/(xdata**2)!(1:100)
-  x = xdata
+  n = size(xdata)
 
-  n = size(x)
+  hmin = minval(xdata)
+  hmax = maxval(xdata)
+  hn = 100
+  hdiff = (hmax - hmin) / real(hn, rk)
+  call mka(x, hmin, hmax, hdiff)
+  call mka(y, hmin, hmax, hdiff)
+  
+  hi = 1
+  do while (hi <= hn)
+     hc = 0
+     hj = 1
+     do while (hj <= n)
+        if (xdata(hj) <= x(hi) + hdiff .and. xdata(hj) >= x(hi)) then
+           hc = hc + 1
+        end if
+        hj = hj + 1
+     end do
+     y(hi) = real(hc, rk)
+     hi = hi + 1
+  end do
 
-  call fitline(x, y, n, a, b)
-  !call fla(e, n, 1._8)
+  tn = hn * 10
+  call mka(tx, hmin, hmax, hdiff / (tn / hn))
+  ty = mbd(tx, tn, real(471, rk)) * 2436. * 20.
 
-  !call fitlinesigmai(x, y, n, e, a, b, sa, sb)
-
-  sigma = sqrt(sum(y)/real(n,rk))
-  !sigma = sqrt(chisigma2(x, y, n, a, b))
-  call fitlinesigma(x, y, n, sigma, a, b, sa, sb)
-
-  call mka(tx, 0.003_8, 0.16_8, 0.02_8)
-  ty = a + tx * b
-  tymax = (a+sqrt(sa)) + tx * (b+sqrt(sb))
-  tymin = (a-sqrt(sa)) + tx * (b-sqrt(sb))
-
-  se = sqrt(sa + sb)
-
-  write(0, *) "sigma: ", sigma
-  write(0, *) "a: ", a, "b: ", b, " as2: ", sa, " bs2: ", sb, " fit err: ", se
-
-  write(0, *) "counts: ", sum(ydata)
-
-  tn = size(tx)
+  write(0, *) "min: ", hmin, "max: ", hmax, "diff: ", hdiff
+  write(0, *) "particles: ", n
 
   print *, code
 
-  !call fla(en, tn, se)
-  !call fla(e, n, sigma)
-
-  !  call plotoute(x, y, e, n)
-  call plotout(x, y, n)
-
-!  call plotout(tx, ty, tn)
-!  call plotout(tx, tymax, tn)
-!  call plotout(tx, tymin, tn)
+  call plotout(x, y, hn)
+  !call plotout(tx, ty, tn)
 contains
+  function mbd(x, n, a)
+    integer :: n
+    real(rk), intent(in) :: x(n)
+    real(rk) mbd(n)
+    real(rk) :: a
+
+    mbd = sqrt(2. / pi) * (x**2 * exp(-x**2 / (2*a**2))) / (a**3)
+  end function mbd
+  
   function f(x, n)
     integer :: n
     real(rk), intent(in) :: x(n)

@@ -19,11 +19,11 @@ contains
 
     boxmuller = sqrt(-2.0*log(n)) * cos(2.0*pi*m)
   end function boxmuller
-  
+
   function normrand(mu, sigma)
     real(rk) :: mu, sigma
     real(rk) :: normrand
-    
+
     normrand = boxmuller(rand(), rand()) * sigma + mu
   end function normrand
 
@@ -246,6 +246,11 @@ contains
     end do
   end subroutine fla
 
+  character(len = colmax) function str(r)
+    real :: r
+    write(str, *) r
+  end function str
+
   ! separated by tabs or spaces, hash is comment
   subroutine column(r, c, cm)
     integer :: c, cm
@@ -292,7 +297,7 @@ contains
        i = i + 1
     end do
 
-    if (cch == '') then
+    if (cch == '' .or. cc /= c) then
        cm = 1
        return
     endif
@@ -300,8 +305,54 @@ contains
     read(cch, *) r
   end subroutine column
 
+  ! separated by tabs or spaces, hash is comment
+  function string_column(c) result(cch)
+    integer :: c
+    character :: ch
+    character(colmax) :: cch
+    logical :: ws
+
+    integer :: i, n, cc
+
+    i = 1
+    n = colmax
+    cc = 0
+    ws = .false.
+    cch = ''
+
+    do while (i < n)
+       ch = line(i:i)
+
+       if (ch == '#') then ! comment
+          exit
+       endif
+
+       !print *, trim(ch), trim(cch)
+
+       if (ch == ',' .or. ch == ' ' .or. ch == char(9) .or. ch == char(10)) then
+          ws = .true.
+       else
+          if (ws .eqv. .true.) then
+             ws = .false.
+             cc = cc + 1
+
+             if (cc == c) then
+                exit;
+             else
+                cch = ''
+             end if
+          end if
+
+          cch = trim(cch) // ch
+       end if
+
+       i = i + 1
+    end do
+    cch = trim(cch)
+  end function string_column
+
   function parser(p, c) ! create array from file
-    character(32) :: p
+    character(colmax) :: p
     integer :: c
     real(rk), allocatable :: parser(:)
 
@@ -343,6 +394,73 @@ contains
 
     deallocate(a)
   end function parser
+
+  function parse_movie(p, c, t_start, t_end) ! create array from file
+    character(colmax) :: p
+    integer :: c
+    character(len=*) :: t_start, t_end
+    real(rk), allocatable :: parse_movie(:)
+
+    integer :: i, n, io, cm
+    real(rk), allocatable :: a(:)
+    real(rk) :: s
+
+    logical :: reading
+
+    open(8, file = p, action = 'read')
+
+    allocate(a(0))
+
+    reading = .false.
+
+    n = 2
+    i = 1
+    do while (i < n .or. .true.)
+       read(8, '(A)', iostat = io) line
+
+       if (io /= 0) then
+          exit
+       endif
+
+       if (reading .eqv. .false.) then
+          !print *, trim(string_column(1)), "Time=" // trim(t_start)
+          if (trim(string_column(1)) == "Time=" // trim(t_start)) then
+             reading = .true.
+          end if
+          cycle
+       end if
+
+       if (trim(string_column(1)) == "Time=" // trim(t_end)) then
+          exit
+       end if
+
+       if (line(1:5) == "Time=") then
+          cycle
+       end if
+       
+       !print *, trim(line)
+
+       cm = 0
+       call column(s, c, cm)
+       !print *, cm
+
+       if (cm == 0) then
+          n = n + 1
+          call append(a, s)
+       end if
+       i = i + 1
+    end do
+
+    allocate(parse_movie(n))
+
+    close(8)
+
+    !print *, a
+
+    parse_movie = a
+
+    deallocate(a)
+  end function parse_movie
 
   subroutine appends(a, v) ! append string to array
     character, allocatable :: a(:)
