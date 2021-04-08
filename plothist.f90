@@ -39,10 +39,10 @@ program main
 
   code = readfile(sc)
 
-  vxdata = parse_movie(s, 4, "10000", "100000")
-  vydata = parse_movie(s, 5, "10000", "100000")
-  xdata = sqrt(vxdata**2 + vydata**2) * 1.e5
-  xdata = xdata * xdata * 3.29304e-7
+  vxdata = parse_movie(s, 4, "0", "100000")
+  vydata = parse_movie(s, 5, "0", "100000")
+  !xdata = sqrt(vxdata**2 + vydata**2) * 1.e5
+  xdata = 63.546 * (vxdata**2 + vydata**2) * 103.642697 / 2.
 
   !call sort(x, y, n)
 

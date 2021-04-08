@@ -422,6 +422,10 @@ contains
           exit
        endif
 
+       if (mod(i, 10000) == 0) then
+          write(0, *) "Reading", i
+       end if
+
        if (reading .eqv. .false.) then
           !print *, trim(string_column(1)), "Time=" // trim(t_start)
           if (trim(string_column(1)) == "Time=" // trim(t_start)) then
@@ -437,7 +441,7 @@ contains
        if (line(1:5) == "Time=") then
           cycle
        end if
-       
+
        !print *, trim(line)
 
        cm = 0
